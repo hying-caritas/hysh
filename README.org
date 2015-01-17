@@ -1,0 +1,113 @@
+* HYSH
+
+HYSH stands for Huang Ying's SHell in common lisp.
+
+Bash interactive shell and scripts are very important tools to use
+Linux.  But I don't like the syntax of bash, would rather to do that
+in common lisp.  I read some document of SCSH and tried
+inferior-shell.  Both are good and useful tool.  I like common lisp
+and the capability to write pipeline filter in lisp (scheme) of SCSH.
+After tried to implement an iolib backend and add common lisp pipeline
+filter support to inferior-shell, I still feel that the command and
+redirection syntax of inferior-shell is just a direct translation of
+that of bash.  Maybe I can do that in a more lisp style.  It is the
+HYSH.  The initial version was based on fork, later on I found that
+does not work well with thread, which I think is more popular
+programming model for common lisp, so I reimplemented it with thread
+and lfp-spawn of iolib.
+
+** Example
+
+#+BEGIN_EXAMPLE
+(defun dpkg-installed (&key (packagenames t))
+  (out/lines
+    (pipe (run dpkg -l)
+          (if (eq packagenames t)
+              (run cat)
+              (run egrep (apply #'uiop:strcat
+                                `("("
+                                  ,@(iter (for (name . more) :on packagenames)
+                                          (collect name)
+                                          (when more (collect " | ")))
+                                  ")")))))))
+#+END_EXAMPLE
+
+or write the filter in common lisp.
+
+#+BEGIN_EXAMPLE
+(defun dpkg-installed (&key (packagenames t))
+  (out/lines
+    (pipe (run dpkg -l)
+	  (if (eq packagenames t)
+	      (filter-line #'identity)
+	      (filter-line (lambda (line)
+			     (when (some (lambda (pkg)
+					   (search pkg line))
+					 packagenames)
+			       line)))))))
+#+END_EXAMPLE
+
+The power of HYSH is that you can use common lisp to write pipeline
+filters and glue external programs and common lisp codes in various
+way.
+
+** Task
+
+The task object is the representation of a common lisp thread or a
+UNIX process.
+
+** Common conventions
+
+There are mainly two categories of functions/macros in HYSH.  Some
+functions/macros compute, some other functions/macros setup
+environment (IO redirecting, gluing with pipeline etc.) for computing.
+
+Functions/macros to setup environment for some computing have one to
+several parameters to specify the computing.  Most computing
+functions/macros return one to several results, the last result
+indicate whether the computing is successful.  Most functions/macros
+to setup environment will return the return values of one of the given
+computing functions/macros and may prepend some new values to the
+return values.  For example, out/ss will prepend stdout output string
+to its computing's return values.
+
+** Run external program
+
+Unlike inferior-shell, HYSH provides only basic support to run
+external program, because all IO redirection and glue between programs
+are done in common lisp functions/macros.
+
+** IO redirection
+
+IO redirection is for any common lisp code, and will be inherited by
+the threads/processes created by the current thread, so works for
+running external programs too.
+
+** Glue external programs and common lisp codes
+
+The most important glue is pipeline.  I think this is the flagship of
+UNIX worlds.  Now we can do that in common lisp.
+
+Other glue mechanisms are provided too, including and, or, background,
+sequence (just progn).
+
+** External program error processing
+
+Error processing in common lisp is done by conditions.  A special
+continuable condition is defined for external program exiting with
+non-zero status, that is, failed in UNIX sense.
+
+** Arbitrary combination
+
+The power of HYSH is that it provide a more flexible way to combine
+external programs, IO redirection, glue (pipeline, etc.), etc. with
+common lisp.
+
+For example, to encapsulate some external filter program in common
+lisp with string as input and output.  It can be accomplished with:
+
+(in/s input-string (out/s (run filter arg1 arg2 ...)))
+
+For given input-string and arguments, the form will return the result
+string and exit status of filter.  This can be further encapsulated
+into a function/macro.
