@@ -870,8 +870,6 @@ exit success status of the last task."
 		(cons nil nil))
 	       (keyword
 		(ecase stdio
-		  (:stdout
-		   (cons nil nil))
 		  (:null
 		   (cons (sys-open "/dev/null" o-rdwr) nil))
 		  (:pipe
