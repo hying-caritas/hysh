@@ -887,9 +887,9 @@ exit success status of the last task."
 			   (logior o-wronly o-trunc o-creat)
 			   o-rdonly)))
 		  (cons (sys-open file-name flags) nil)))))
-	   (open-stderr (stderr stdout-fds)
+	   (open-stderr (stderr)
 	     (if (eq :stdout stderr)
-		 (cons (dup (car stdout-fds)) nil)
+		 (cons nil nil)
 		 (open-stdio stderr :output)))
 	   (make-stream (fds direction)
 	     (when (cdr fds)
@@ -909,7 +909,11 @@ exit success status of the last task."
 	       (when (car fds)
 		 (sys-close (car fds)))
 	       (when (cdr fds)
-		 (sys-close (cdr fds))))))
+		 (sys-close (cdr fds)))))
+	   (create-simple-task ()
+	     (if (consp thunk-or-cmdline)
+		 (create-simple-process* thunk-or-cmdline)
+		 (create-simple-thread* thunk-or-cmdline))))
     (let (stdin-fds stdout-fds stderr-fds
 	  stdin-stream stdout-stream stderr-stream
 	  task)
@@ -917,8 +921,7 @@ exit success status of the last task."
 	   (progn
 	     (setf stdin-fds  (open-stdio stdin :input)
 		   stdout-fds (open-stdio stdout :output)
-		   stderr-fds (open-stderr stderr stdout-fds))
-	     
+		   stderr-fds (open-stderr stderr))
 	     (setf stdin-stream (make-stream stdin-fds :input))
 	     (setf stdout-stream (make-stream stdout-fds :output))
 	     (setf stderr-stream (make-stream stderr-fds :output))
@@ -926,9 +929,11 @@ exit success status of the last task."
 			    ((popcar stdin-fds)
 			     (popcar stdout-fds)
 			     (popcar stderr-fds))
-			  (if (consp thunk-or-cmdline)
-			      (create-simple-process* thunk-or-cmdline)
-			      (create-simple-thread* thunk-or-cmdline))))
+			  (if (eq stderr :stdout)
+			      (call-with-redirect-to-fd-stream
+			       '*error-output* +STDERR-FD+ *standard-output*
+			       #'create-simple-task)
+			      (create-simple-task))))
 	     (with-slots ((stdin stdin) (stdout stdout) (stderr stderr))
 		 task
 	       (setf stdin stdin-stream)
