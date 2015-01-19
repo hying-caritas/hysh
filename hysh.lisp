@@ -462,11 +462,11 @@ the redirection."
 
 (defmacro with-redirect-to-file (stream-var redirect-to-fd pathname flags &body body)
   "Open the pathname with the flags and redirect the stream-var (for a
-lisp stream variable, such as *standard-input*) and
+lisp stream variable, such as *standard-input*) and the
 redirect-to-fd (for a UNIX file descriptor, such as 0 (stdin)) to the
 opened file, then evaluate the body in an implicit PROGN, return the
-values of the last form of the body.  Finally canceled the
-redirection."
+values of the last form of the body.  Finally canceled the redirection
+and close the file."
   `(call-with-redirect-to-file ',stream-var ,redirect-to-fd ,pathname ,flags
 			       (lambda () ,@body)))
 
@@ -479,10 +479,10 @@ redirection."
 
 (defmacro with-redirect-to-fd (stream-var redirect-to-fd fd &body body)
   "Redirect the stream-var (for a lisp stream variable, such as
-*standard-input*) and redirect-to-fd (for a UNIX file descriptor, such
-as 0 (stdin)) to the fd, then evaluate the body in an implicit PROGN,
-return the values of the last form of the body.  Finally canceled the
-redirection."
+*standard-input*) and the redirect-to-fd (for a UNIX file descriptor,
+such as 0 (stdin)) to the fd, then evaluate the body in an implicit
+PROGN, return the values of the last form of the body.  Finally
+canceled the redirection and close the fd."
   `(call-with-redirect-to-fd ',stream-var ,redirect-to-fd ,fd
 			     (lambda () ,@body)))
 
@@ -494,12 +494,12 @@ redirection."
 				       streams func))))
 
 (defmacro with-redirect-to-fds (stream-var-redirect-to-fd-fd-list &body body)
-  "Redirect the a list of stream-vars (for a lisp stream variable,
+  "Redirect a list of stream-vars (for a lisp stream variable,
 such as *standard-input*) and redirect-to-fds (for a UNIX file
 descriptor, such as 0 (stdin)) to a list of fds, they are spcified via
-a list of (stream-var redirect-to-fd fd), then evaluate the body in an
-implicit PROGN, return the values of the last form of the body.
-Finally canceled the redirections."
+the list of (stream-var redirect-to-fd fd), then evaluate the body in
+an implicit PROGN, return the values of the last form of the body.
+Finally canceled the redirections and close the fds."
   (let (stream-syms redirect-to-fds fds)
     (iter (for (stream-sym redirect-to-fd fd)
 	       :in stream-var-redirect-to-fd-fd-list)
@@ -535,7 +535,7 @@ Finally canceled the redirections."
 stdout (*standard-output* and 1) and stderr (*error-output* and 2) to
 the in-fd, the out-fd and the err-fd respectively, then evaluate the
 body in an implicit PROGN, return the values of the last form of the
-body, finally cancel the redirections."
+body, finally cancel the redirections and close the fds."
   `(call-with-redirect-stdio-to-fds ,in-fd ,out-fd ,err-fd
 				    (lambda () ,@body)))
 
