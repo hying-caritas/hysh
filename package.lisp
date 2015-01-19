@@ -14,7 +14,8 @@
    #:ignore-command-error #:warn-on-command-error #:stop-on-command-error
    #:run* #:run
    ;; io redirect
-   #:stop-on-stdio-error #:with-redirect-to-file #:with-redirect-to-fd
+   #:stop-on-stdio-error #:with-redirect-to-fd-stream
+   #:with-redirect-to-file #:with-redirect-to-fd
    #:with-redirect-to-fds #:with-redirect-stdin-to-file
    #:with-redirect-stdout-to-file #:with-redirect-stderr-to-file
    #:with-redirect-stdio-to-fds

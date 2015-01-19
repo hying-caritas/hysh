@@ -433,6 +433,11 @@ pipeline."
     (funcall func)))
 
 (defmacro with-redirect-to-fd-stream (stream-var redirect-to-fd stream &body body)
+  "Redirect the stream-var (for a lisp stream variable, such as
+*standard-input*) and redirect-to-fd (for a UNIX file descriptor, such
+as 0 (stdin) to the fd-stream, then evalute the body in an implicit
+PROGN, return the values of the last form of the body.  Finally cancel
+the redirection."
   `(call-with-redirect-to-fd-stream ',stream-var ,redirect-to-fd ,stream
 				    (lambda () ,@body)))
 
