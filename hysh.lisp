@@ -566,6 +566,10 @@ values of the last form of the body."
        '(:direction :output :if-exists :supersede :if-does-not-exist :create)
        ,@body))
 
+(defun call-with-redirect-stderr-to-stdout (thunk)
+  (call-with-redirect-to-fd-stream '*error-output* +STDERR-FD+
+				   *standard-output* thunk))
+
 (defmacro with-redirect-stderr-to-stdout (&body body)
   "Redirect stderr to the stdout for evaluating the body in an
 implicit PROGN, finally restore the original stderr.  Return the
@@ -943,8 +947,7 @@ exit success status of the last task."
 			     (popcar stdout-fds)
 			     (popcar stderr-fds))
 			  (if (eq stderr :stdout)
-			      (call-with-redirect-to-fd-stream
-			       '*error-output* +STDERR-FD+ *standard-output*
+			      (call-with-redirect-stderr-to-stdout
 			       #'create-simple-task)
 			      (create-simple-task))))
 	     (with-slots ((stdin stdin) (stdout stdout) (stderr stderr))
