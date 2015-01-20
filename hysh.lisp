@@ -558,12 +558,20 @@ values of the last form of the body."
      ,@body))
 
 (defmacro with-redirect-stderr-to-file (pathname &body body)
-  "Redirect stderr to the pathname for evaluate the body in an
+  "Redirect stderr to the pathname for evaluating the body in an
 implicit PROGN, finally restore the original stderr.  Return the
 values of the last form of the body."
   `(with-redirect-to-file
        *error-output* +STDERR-FD+ ,pathname
        '(:direction :output :if-exists :supersede :if-does-not-exist :create)
+       ,@body))
+
+(defmacro with-redirect-stderr-to-stdout (&body body)
+  "Redirect stderr to the stdout for evaluating the body in an
+implicit PROGN, finally restore the original stderr.  Return the
+values of the last form of the body."
+  `(with-redirect-to-fd-stream
+       *error-output* +STDERR-FD+ *standard-output*
      ,@body))
 
 (defun tmpfd (&optional (template "/tmp/hysh-"))

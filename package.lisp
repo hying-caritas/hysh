@@ -18,7 +18,7 @@
    #:with-redirect-to-file #:with-redirect-to-fd
    #:with-redirect-to-fds #:with-redirect-stdin-to-file
    #:with-redirect-stdout-to-file #:with-redirect-stderr-to-file
-   #:with-redirect-stdio-to-fds
+   #:with-redirect-stderr-to-stdout #:with-redirect-stdio-to-fds
    #:out/s #:out/ss #:out/lines #:out/err/s #:out/err/ss #:in/s
    #:in/lines #:io/s #:io/ss #:io/ss/run
    ;; glue processes and common lisp functions
