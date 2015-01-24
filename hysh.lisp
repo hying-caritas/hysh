@@ -255,18 +255,12 @@ last form of the body."
     (setf (cffi:mem-aref argv :pointer argc) (cffi:null-pointer))
     argv))
 
-(defun free-argv (argv)
-  (iter (for i :upfrom 0)
-	(for ptr := (cffi:mem-aref argv :pointer i))
-	(until (cffi:null-pointer-p ptr))
-	(cffi:foreign-free ptr)))
-
 (defmacro with-argv ((arg0 argv args) &body body)
   `(let ((,argv (alloc-argv ,args)))
      (unwind-protect
 	  (let ((,arg0 (cffi:mem-ref ,argv :pointer)))
 	    ,@body)
-       (free-argv ,argv))))
+       (free-cstr-vec ,argv))))
 
 (defun call-with-lfp-file-actions (thunk)
   (cffi:with-foreign-object (file-actions 'iolib.os::lfp-spawn-file-actions-t)
@@ -331,7 +325,7 @@ last form of the body."
 	(with-all-redirections file-actions
 	  (cffi:with-foreign-object (pid 'isys:pid-t)
 	    (with-fd-lock-held
-	      (iolib.os::lfp-spawnp pid arg0 argv *environ* file-actions (cffi:null-pointer)))
+	      (iolib.os::lfp-spawnp pid arg0 argv (get-cenv) file-actions (cffi:null-pointer)))
 	    (make-instance 'process :pid (cffi:mem-ref pid 'isys:pid-t))))))))
 
 (defun run* (cmdline)
@@ -376,17 +370,20 @@ value of a symbol, try something like (or symbol)."
 	  (remove-duplicates redirections
 			     :key #'redirection-symbol
 			     :from-end t))
-	 (on-command-error *on-command-error*))
+	 (on-command-error *on-command-error*)
+	 (environment *environment*))
     (mapc (lambda (redir)
 	    (fd-stream-ref (redirection-stream redir)))
 	  redirections)
+    (environment-ref environment)
     (let ((sys-thread
 	   (make-thread
 	    (lambda ()
 	      (progv
 		  (mapcar #'redirection-symbol symbol-redirections)
 		  (mapcar #'redirection-stream symbol-redirections)
-		(let ((*redirections* redirections))
+		(let ((*redirections* redirections)
+		      (*environment* environment))
 		  (unwind-protect
 		       (ecase on-command-error
 			 ((nil)   (funcall thunk))
@@ -395,7 +392,8 @@ value of a symbol, try something like (or symbol)."
 			 (:stop   (stop-on-command-error* thunk)))
 		    (mapc (lambda (redir)
 			    (close (redirection-stream redir)))
-			  redirections))))))))
+			  redirections)
+		    (close-environment environment))))))))
       (make-instance 'thread-task :thread sys-thread))))
 
 ;;; IO redirection

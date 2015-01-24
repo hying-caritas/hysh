@@ -24,6 +24,8 @@
    ;; glue processes and common lisp functions
    #:prog-or #:prog-and #:background
    #:pipe #:create-task #:with-task
+   ;; environment
+   #:with-change-env #:get-env #:set-env #:unset-env
    ;; pipeline filter helpers
    #:filter-char #:filter-line
    ;; glob
