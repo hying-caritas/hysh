@@ -146,8 +146,6 @@ Return the process object."
 			   (wait-task task)))
 		       *active-tasks*)))))
 
-(deftype thunk (&optional value-type) `(function () ,value-type))
-
 ;;; Run command
 
 (defvar *on-command-error* nil)

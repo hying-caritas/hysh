@@ -1,5 +1,7 @@
 (in-package :hysh)
 
+(deftype thunk (&optional value-type) `(function () ,value-type))
+
 (defconstant +PROGRAM+ '|hysh|)
 
 (defconstant +STDIN-FD+ 0)
