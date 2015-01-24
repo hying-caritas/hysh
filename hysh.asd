@@ -14,6 +14,7 @@
 	       (:file "stream" :depends-on ("common" "syscall-iolib"))
 	       (:file "redirection" :depends-on ("stream"))
 	       (:file "hysh" :depends-on ("redirection" "environment"))
+	       (:file "glue" :depends-on ("hysh"))
 	       (:file "utilities" :depends-on ("hysh")))
   :in-order-to ((test-op (load-op "hysh-test")))
   :perform (test-op :after (o c) (symbol-call :hysh-test :main)))
