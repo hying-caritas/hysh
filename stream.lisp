@@ -19,7 +19,7 @@
   (apply #'do-translate-flags flags))
 
 (defun open-file-fd-stream (pathname flags)
-  (let ((fd (sys-open (unix-namestring pathname)
+  (let ((fd (sys-open (uiop:unix-namestring pathname)
 		      (translate-flags flags)))
 	stream)
     (unwind-protect
@@ -30,7 +30,7 @@
     stream))
 
 (defun call-with-open-fd (pathname flags func)
-  (let ((fd (sys-open (unix-namestring pathname)
+  (let ((fd (sys-open (uiop:unix-namestring pathname)
 		      (translate-flags flags))))
     (unwind-protect
 	 (funcall func fd)
@@ -75,7 +75,7 @@
 			   (lambda (,@stream-vars) ,@body))))
 
 (defun call-with-file-fd-stream (pathname flags func)
-  (let ((fd (sys-open (unix-namestring pathname)
+  (let ((fd (sys-open (uiop:unix-namestring pathname)
 		      (translate-flags flags))))
     (call-with-fd-stream fd nil func)))
 

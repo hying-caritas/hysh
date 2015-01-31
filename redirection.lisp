@@ -192,7 +192,7 @@ values of the last form of the body."
 
 (defun tmpfd (&optional (template "/tmp/hysh-"))
   (multiple-value-bind (fd file-name) (mkstemp template)
-    (delete-file (parse-unix-namestring file-name))
+    (delete-file (uiop:parse-unix-namestring file-name))
     fd))
 
 (defun %out/stream (thunk reader)
@@ -217,7 +217,7 @@ return values of the thunk."
 	       (lambda (stream)
 		 (fd-stream-ref stream)
 		 (fd-stream-ref stream)
-		 (slurp-stream-string stream))))
+		 (uiop:slurp-stream-string stream))))
 
 (defmacro out/s (&body body)
   "Collect the output of evaluating the body in an implicit PROGN via
@@ -233,7 +233,7 @@ stripped."
 	       (lambda (stream)
 		 (fd-stream-ref stream)
 		 (fd-stream-ref stream)
-		 (values (stripln (slurp-stream-string stream))))))
+		 (values (uiop:stripln (uiop:slurp-stream-string stream))))))
 
 (defmacro out/ss (&body body)
   "Almost same as out/s except the newline at end of output string is
@@ -248,7 +248,7 @@ lines as list and the return values of the thunk."
   (%out/stream thunk
 	       (lambda (stream)
 		 (fd-stream-ref stream)
-		 (slurp-stream-lines stream))))
+		 (uiop:slurp-stream-lines stream))))
 
 (defmacro out/lines (&body body)
   "Collect the output of evaluating the body in an implicit PROGN into
@@ -282,7 +282,7 @@ last form of the body."
   (flet ((ref-slurp-stream-string (stream)
 	   (fd-stream-ref stream)
 	   (fd-stream-ref stream)
-	   (slurp-stream-string stream)))
+	   (uiop:slurp-stream-string stream)))
     (%out/err/stream thunk
 		     #'ref-slurp-stream-string
 		     #'ref-slurp-stream-string)))
@@ -303,7 +303,7 @@ last form of the body."
   (flet ((ref-strip-slurp-stream-string (stream)
 	   (fd-stream-ref stream)
 	   (fd-stream-ref stream)
-	   (values (stripln (slurp-stream-string stream)))))
+	   (values (uiop:stripln (uiop:slurp-stream-string stream)))))
     (%out/err/stream thunk
 		     #'ref-strip-slurp-stream-string
 		     #'ref-strip-slurp-stream-string)))

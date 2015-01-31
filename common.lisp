@@ -15,17 +15,6 @@
 	(cffi:foreign-free ptr))
   (cffi:foreign-free cstr-vec))
 
-(defun copy-hash (hash)
-  (declare (type hash-table hash))
-  (let ((new-hash (make-hash-table :test (hash-table-test hash)
-				   :size (hash-table-size hash)
-				   :rehash-size (hash-table-rehash-size hash)
-				   :rehash-threshold (hash-table-rehash-threshold hash))))
-    (maphash (lambda (var val)
-	       (setf (gethash var new-hash) val))
-	     hash)
-    new-hash))
-
 (defun split-string-with-char (str char &key (max -1) from-end)
   (labels ((split (str max acc)
 	     (if (= max 1)

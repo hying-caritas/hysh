@@ -295,7 +295,7 @@ last form of the body."
     (keyword (format nil "--~(~A~)" x))
     (symbol (string-downcase x))
     (string x)
-    (pathname (unix-namestring (translate-logical-pathname x)))
+    (pathname (uiop:unix-namestring (translate-logical-pathname x)))
     (t (princ-to-string x))))
 
 (defun any->string-list (x)
@@ -405,7 +405,7 @@ value of a symbol, try something like (or symbol)."
 		(cons stdio nil))
 	       ((or string pathname)
 		(let ((file-name
-		       (unix-namestring stdio))
+		       (uiop:unix-namestring stdio))
 		      (flags
 		       (if (eq direction :output)
 			   (logior o-wronly o-trunc o-creat)

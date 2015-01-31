@@ -35,7 +35,7 @@
 	environment
       (make-instance 'environment :cenv (cffi:null-pointer)
 		     :variables (if variables
-				    (copy-hash variables)
+				    (copy-hash-table variables)
 				    (cenv->hash cenv))))))
 
 (defun cenv->hash (cenv)

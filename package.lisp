@@ -1,9 +1,8 @@
 (in-package #:cl-user)
 
 (defpackage #:hysh
-  (:use #:cl #:iterate #:uiop #:trivial-gray-streams
+  (:use #:cl #:iterate #:alexandria #:trivial-gray-streams
 	#:bordeaux-threads #:hy-stream)
-  (:import-from #:alexandria #:with-gensyms)
   (:import-from #:fare-utils #:join-strings)
   (:export
    ;; task
