@@ -3,7 +3,6 @@
 (defpackage #:hysh
   (:use #:cl #:iterate #:alexandria #:trivial-gray-streams
 	#:bordeaux-threads #:hy-stream)
-  (:import-from #:fare-utils #:join-strings)
   (:export
    ;; task
    #:task-alive-p #:wait-task #:task-return-success-p #:close-task

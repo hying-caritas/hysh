@@ -5,8 +5,7 @@
   :version "0.1"
   :depends-on (:asdf :uiop :alexandria :iterate
 	       :iolib.syscalls :iolib.streams :iolib.os
-	       :bordeaux-threads :fare-utils :hy-stream
-	       :trivial-gray-streams)
+	       :bordeaux-threads :hy-stream)
   :components ((:file "package")
 	       (:file "common" :depends-on ("package"))
 	       (:file "syscall-iolib" :depends-on ("package"))

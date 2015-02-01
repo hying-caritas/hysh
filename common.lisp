@@ -25,3 +25,17 @@
 			      (cons (subseq str 0 pos) acc))
 		       (cons str acc))))))
     (nreverse (split str max nil))))
+
+(defun string-join (sep strings)
+  (if (null strings)
+      nil
+      (let* ((sep-len (length sep))
+	     (result (make-string (+ (apply #'+ (mapcar #'length strings))
+				     (* sep-len (1- (length strings)))))))
+	(replace result (car strings))
+	(iter (for pos :first (length (car strings))
+		   :then (+ pos sep-len (length str)))
+	      (for str :in (cdr strings))
+	      (replace result sep :start1 pos)
+	      (replace result str :start1 (+ pos sep-len)))
+	result)))

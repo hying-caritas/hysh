@@ -27,11 +27,11 @@ it is not NIL."
 ;; glob
 
 (defun zglobcmd (&rest patterns)
-  `(zsh --nullglob -fc ,(join-strings (cons "print -l" patterns) :separator " ")))
+  `(zsh --nullglob -fc ,(string-join " " (cons "print -l" patterns))))
 
 (defun zglob (patterns)
   "Return a list of string matches patterns in shell pattern syntax
 and semantics."
   (out/lines
     (with-redirect-stderr-to-file "/dev/null"
-      (run* (apply #'zglobcmd (alexandria:ensure-list patterns))))))
+      (run* (apply #'zglobcmd (ensure-list patterns))))))
