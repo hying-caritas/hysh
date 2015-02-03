@@ -1,7 +1,7 @@
 (in-package #:cl-user)
 
 (defpackage #:hysh
-  (:use #:cl #:iterate #:alexandria #:trivial-gray-streams
+  (:use #:cl #:iterate #:alexandria #:split-sequence
 	#:bordeaux-threads #:hy-stream)
   (:export
    ;; task

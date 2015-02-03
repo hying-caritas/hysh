@@ -38,6 +38,11 @@
 				    (copy-hash-table variables)
 				    (cenv->hash cenv))))))
 
+(defun %split-var=val (str)
+  (multiple-value-bind (var pos)
+      (split-sequence #\= str :count 1)
+    (nconc var (list (subseq str pos)))))
+
 (defun cenv->hash (cenv)
   (when (cffi:null-pointer-p cenv)
     (return-from cenv->hash nil))
@@ -45,7 +50,7 @@
     (iter (for ptr :first cenv :then (cffi:mem-aptr ptr :pointer 1))
 	  (for var=val := (cffi:mem-aref ptr :pointer))
 	  (until (cffi:null-pointer-p var=val))
-	  (for (var val) := (split-string-with-char (cffi:foreign-string-to-lisp var=val) #\=))
+	  (for (var val) := (%split-var=val (cffi:foreign-string-to-lisp var=val)))
 	  (setf (gethash var hash) val))
     hash))
 

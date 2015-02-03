@@ -15,17 +15,6 @@
 	(cffi:foreign-free ptr))
   (cffi:foreign-free cstr-vec))
 
-(defun split-string-with-char (str char &key (max -1) from-end)
-  (labels ((split (str max acc)
-	     (if (= max 1)
-		 (cons str acc)
-		 (let ((pos (position char str :from-end from-end)))
-		   (if pos
-		       (split (subseq str (1+ pos)) (1- max)
-			      (cons (subseq str 0 pos) acc))
-		       (cons str acc))))))
-    (nreverse (split str max nil))))
-
 (defun string-join (sep strings)
   (if (null strings)
       nil

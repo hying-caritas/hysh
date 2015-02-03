@@ -28,5 +28,11 @@
 				 (filter-line #'identity))))
 		 "1 2 3")))
 
+(test environment
+      "Test the environment"
+      (is (equal (out/ss (with-change-env (("asdf" "jkl;")) ()
+			   (run bash -c "echo $asdf")))
+		 "jkl;")))
+
 (defun main ()
   (run! 'hysh))
