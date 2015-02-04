@@ -88,7 +88,7 @@
 	(setf cenv (hash->cenv variables)))
       cenv)))
 
-(defun get-env (var &optional (environment *environment*))
+(defun environment-variable (var &optional (environment *environment*))
   "Get the value of the var in the environment (default to current
 environment)"
   (declare (type environment environment)
@@ -110,7 +110,7 @@ environment)"
       (%free-cenv cenv)
       (setf cenv (cffi:null-pointer)))))
 
-(defun set-env (var val &optional (environment *environment*))
+(defun (setf environment-variable) (val var &optional (environment *environment*))
   "Set the var in the environment (default to current environment) to
 the value"
   (declare (type environment environment)
@@ -120,7 +120,7 @@ the value"
     (setf (gethash var (slot-value environment 'variables))
 	  val)))
 
-(defun unset-env (var &optional (environment *environment*))
+(defun mkunbound-environment-variable (var &optional (environment *environment*))
   "Remove the var in the environment (default to current environment)"
   (declare (type environment environment)
 	   (type string var))
@@ -128,25 +128,25 @@ the value"
     (%prepare-change-env environment)
     (remhash var (slot-value environment 'variables))))
 
-(defun call-with-change-env (sets unsets thunk)
+(defun call-with-change-environment (sets unsets thunk)
   (let ((*environment* (copy-environment)))
     (unwind-protect
 	 (progn
 	   (iter (for (var val) :in sets)
-		 (set-env var val))
+		 (setf (environment-variable var) val))
 	   (iter (for var :in unsets)
-		 (unset-env var))
+		 (mkunbound-environment-variable var))
 	   (funcall thunk))
       (close-environment *environment*))))
 
-(defmacro with-change-env ((&rest sets) (&rest unsets) &body body)
+(defmacro with-change-environment ((&rest sets) (&rest unsets) &body body)
   "Make a copy of current environment and make it the current
 environment, do specified set/unset operations on the environment,
 then evaluate the body in an implicit PROGN, return the values of the
 last form of the body.  Finally restore the original environment.  The
 format to specify set operations is ((var val) ...), the format to
 specify unset operations is (var ...)"
-  `(call-with-change-env ,(cons 'list
-				(mapcar (lambda (var-val) (cons 'list var-val))
-					sets))
-			 ,unsets (lambda () ,@body)))
+  `(call-with-change-environment ,(cons 'list
+					(mapcar (lambda (var-val) (cons 'list var-val))
+						sets))
+				 ,unsets (lambda () ,@body)))

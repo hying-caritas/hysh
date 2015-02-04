@@ -30,7 +30,7 @@
 
 (test environment
       "Test the environment"
-      (is (equal (out/ss (with-change-env (("asdf" "jkl;")) ()
+      (is (equal (out/ss (with-change-environment (("asdf" "jkl;")) ()
 			   (run bash -c "echo $asdf")))
 		 "jkl;")))
 

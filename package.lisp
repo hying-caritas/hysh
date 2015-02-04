@@ -23,7 +23,7 @@
    #:prog-or #:prog-and #:background
    #:pipe #:create-task #:with-task
    ;; environment
-   #:with-change-env #:get-env #:set-env #:unset-env
+   #:with-change-environment #:environment-varaible #:mkunbound-environment-variable
    ;; pipeline filter helpers
    #:filter-char #:filter-line
    ;; glob
