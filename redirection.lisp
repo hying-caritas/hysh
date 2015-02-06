@@ -36,28 +36,28 @@ the last form of the body.  This is mainly for SIGPIPE processing in
 pipeline."
   `(stop-on-stdio-error* (lambda () ,@body)))
 
-(defun call-with-redirect-to-fd-stream (stream-sym redirect-to-fd stream func)
+(defun call-with-redirect-to-fd-stream (stream-sym fd stream func)
   (progv
       `(*redirections* ,stream-sym)
-      (list (cons (make-redirection stream-sym redirect-to-fd stream)
+      (list (cons (make-redirection stream-sym fd stream)
 		  *redirections*)
 	    stream)
     (funcall func)))
 
-(defmacro with-redirect-to-fd-stream (stream-var redirect-to-fd stream &body body)
+(defmacro with-redirect-to-fd-stream (stream-var fd stream &body body)
   "Redirect the stream-var (for a lisp stream variable, such as
-*standard-input*) and redirect-to-fd (for a UNIX file descriptor, such
-as 0 (stdin) to the fd-stream, then evalute the body in an implicit
-PROGN, return the values of the last form of the body.  Finally cancel
-the redirection."
-  `(call-with-redirect-to-fd-stream ',stream-var ,redirect-to-fd ,stream
+*standard-input*) and fd (for a UNIX file descriptor, such as
+0 (stdin)) to the stream, then evalute the body in an implicit PROGN,
+return the values of the last form of the body.  Finally cancel the
+redirection."
+  `(call-with-redirect-to-fd-stream ',stream-var ,fd ,stream
 				    (lambda () ,@body)))
 
-(defun call-with-redirect-to-fd-streams (stream-syms redirect-to-fds streams func)
+(defun call-with-redirect-to-fd-streams (stream-syms fds streams func)
   (let ((redirections (iter (for stream-sym :in stream-syms)
-			    (for redirect-to-fd :in redirect-to-fds)
+			    (for fd :in fds)
 			    (for stream :in streams)
-			    (collect (make-redirection stream-sym redirect-to-fd
+			    (collect (make-redirection stream-sym fd
 						       stream)))))
     (progv
 	(list* '*redirections* stream-syms)
@@ -65,80 +65,79 @@ the redirection."
 	       streams)
      (funcall func))))
 
-(defun call-with-redirect-to-file (stream-sym redirect-to-fd pathname flags func)
+(defun call-with-redirect-to-file (stream-sym fd pathname flags func)
   (call-with-file-fd-stream
    pathname flags
    (lambda (stream)
-     (call-with-redirect-to-fd-stream stream-sym redirect-to-fd
+     (call-with-redirect-to-fd-stream stream-sym fd
 				      stream func))))
 
-(defmacro with-redirect-to-file (stream-var redirect-to-fd pathname flags &body body)
+(defmacro with-redirect-to-file (stream-var fd pathname flags &body body)
   "Open the pathname with the flags and redirect the stream-var (for a
-lisp stream variable, such as *standard-input*) and the
-redirect-to-fd (for a UNIX file descriptor, such as 0 (stdin)) to the
-opened file, then evaluate the body in an implicit PROGN, return the
-values of the last form of the body.  Finally canceled the redirection
-and close the file."
-  `(call-with-redirect-to-file ',stream-var ,redirect-to-fd ,pathname ,flags
+lisp stream variable, such as *standard-input*) and the fd (for a UNIX
+file descriptor, such as 0 (stdin)) to the opened file, then evaluate
+the body in an implicit PROGN, return the values of the last form of
+the body.  Finally canceled the redirection and close the file."
+  `(call-with-redirect-to-file ',stream-var ,fd ,pathname ,flags
 			       (lambda () ,@body)))
 
-(defun call-with-redirect-to-fd (stream-sym redirect-to-fd fd func)
+(defun call-with-redirect-to-fd (stream-sym fd to-fd func)
   (call-with-fd-stream
-   fd nil
+   to-fd nil
    (lambda (stream)
-     (call-with-redirect-to-fd-stream stream-sym redirect-to-fd
+     (call-with-redirect-to-fd-stream stream-sym fd
 				      stream func))))
 
-(defmacro with-redirect-to-fd (stream-var redirect-to-fd fd &body body)
+(defmacro with-redirect-to-fd (stream-var fd to-fd &body body)
   "Redirect the stream-var (for a lisp stream variable, such as
-*standard-input*) and the redirect-to-fd (for a UNIX file descriptor,
-such as 0 (stdin)) to the fd, then evaluate the body in an implicit
-PROGN, return the values of the last form of the body.  Finally
-canceled the redirection and close the fd."
-  `(call-with-redirect-to-fd ',stream-var ,redirect-to-fd ,fd
+*standard-input*) and the fd (for a UNIX file descriptor, such as
+0 (stdin)) to the to-fd, then evaluate the body in an implicit PROGN,
+return the values of the last form of the body.  Finally canceled the
+redirection and close the to-fd."
+  `(call-with-redirect-to-fd ',stream-var ,fd ,to-fd
 			     (lambda () ,@body)))
 
-(defun call-with-redirect-to-fds (stream-syms redirect-to-fds fds func)
+(defun call-with-redirect-to-fds (stream-syms fds to-fds func)
   (call-with-fd-streams
-   (mapcar #'list fds)
+   (mapcar #'list to-fds)
    (lambda (&rest streams)
-     (call-with-redirect-to-fd-streams stream-syms redirect-to-fds
+     (call-with-redirect-to-fd-streams stream-syms fds
 				       streams func))))
 
-(defmacro with-redirect-to-fds (stream-var-redirect-to-fd-fd-list &body body)
+(defmacro with-redirect-to-fds (stream-var-fd-to-fd-list &body body)
   "Redirect a list of stream-vars (for a lisp stream variable,
-such as *standard-input*) and redirect-to-fds (for a UNIX file
-descriptor, such as 0 (stdin)) to a list of fds, they are spcified via
-the list of (stream-var redirect-to-fd fd), then evaluate the body in
-an implicit PROGN, return the values of the last form of the body.
-Finally canceled the redirections and close the fds."
-  (let (stream-syms redirect-to-fds fds)
-    (iter (for (stream-sym redirect-to-fd fd)
-	       :in stream-var-redirect-to-fd-fd-list)
+such as *standard-input*) and fds (for a UNIX file descriptor, such as
+0 (stdin)) to a list of to-fds, they are spcified via the list
+of (stream-var fd to-fd), then evaluate the body in an implicit PROGN,
+return the values of the last form of the body.  Finally canceled the
+redirections and close the to-fds."
+  (let (stream-syms fds to-fds)
+    (iter (for (stream-sym fd to-fd)
+	       :in stream-var-fd-to-fd-list)
 	  (push stream-sym stream-syms)
-	  (push redirect-to-fd redirect-to-fds)
-	  (push fd fds))
-    `(call-with-redirect-to-fds ',stream-syms ,(cons 'list redirect-to-fds)
-				,(cons 'list fds)
+	  (push fd fds)
+	  (push to-fd to-fds))
+    `(call-with-redirect-to-fds ',stream-syms ,(cons 'list fds)
+				,(cons 'list to-fds)
 				(lambda () ,@body))))
 
 (defun call-with-redirect-stdio-to-fds (in-fd out-fd err-fd thunk)
-  (let (stream-syms redirect-to-fds fds)
+  (let (stream-syms fds to-fds)
     (when in-fd
       (push '*standard-input* stream-syms)
-      (push +STDIN-FD+ redirect-to-fds)
-      (push in-fd fds))
+      (push +STDIN-FD+ fds)
+      (push in-fd to-fds))
     (when out-fd
       (push '*standard-output* stream-syms)
-      (push +STDOUT-FD+ redirect-to-fds)
-      (push out-fd fds))
+      (push +STDOUT-FD+ fds)
+      (push out-fd to-fds))
     (when err-fd
       (push '*error-output* stream-syms)
-      (push +STDERR-FD+ redirect-to-fds)
-      (push err-fd fds))
+      (push +STDERR-FD+ fds)
+      (push err-fd to-fds))
     (if stream-syms
-	(call-with-redirect-to-fds stream-syms redirect-to-fds
-				   fds thunk)
+	(call-with-redirect-to-fds stream-syms fds
+				   to-fds thunk)
 	(funcall thunk))))
 
 (defmacro with-redirect-stdio-to-fds ((in-fd out-fd &optional (err-fd nil))
