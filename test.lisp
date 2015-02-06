@@ -34,5 +34,11 @@
 			   (run bash -c "echo $asdf")))
 		 "jkl;")))
 
+(test current-directory
+      "Test the current directory"
+      (is (equal (out/ss (with-current-directory "/tmp"
+			   (run pwd)))
+		 "/tmp")))
+
 (defun main ()
   (run! 'hysh))

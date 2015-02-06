@@ -248,17 +248,27 @@ last form of the body."
 	    ,@body)
        (free-cstr-vec ,argv))))
 
-(defun call-with-lfp-file-actions (thunk)
-  (cffi:with-foreign-object (file-actions 'iolib.os::lfp-spawn-file-actions-t)
-    (unwind-protect
-	 (progn
-	   (iolib.os::lfp-spawn-file-actions-init file-actions)
-	   (funcall thunk file-actions))
-      (iolib.os::lfp-spawn-file-actions-destroy file-actions))))
+;;; Copied from iolib.os
+(defun call-with-lfp-spawn-arguments (thunk)
+  (cffi:with-foreign-objects ((attributes 'iolib.os::lfp-spawnattr-t)
+			      (file-actions 'iolib.os::lfp-spawn-file-actions-t))
+    (let ((spawnattr-initialized-p nil)
+          (file-actions-initialized-p nil))
+      (unwind-protect
+           (progn
+             (setf spawnattr-initialized-p
+                   (iolib.os::lfp-spawnattr-init attributes))
+             (setf file-actions-initialized-p
+                   (iolib.os::lfp-spawn-file-actions-init file-actions))
+             (funcall thunk attributes file-actions))
+        (when spawnattr-initialized-p
+          (iolib.os::lfp-spawnattr-destroy attributes))
+        (when file-actions-initialized-p
+          (iolib.os::lfp-spawn-file-actions-destroy file-actions))))))
 
-(defmacro with-lfp-file-actions (file-actions &body body)
-  `(call-with-lfp-file-actions
-    (lambda (,file-actions) ,@body)))
+(defmacro with-lfp-spawn-arguments ((attributes file-actions) &body body)
+  `(call-with-lfp-spawn-arguments
+    (lambda (,attributes ,file-actions) ,@body)))
 
 (defvar *redirection-saved-fds*)
 
@@ -307,11 +317,12 @@ last form of the body."
 (defun create-simple-process* (cmdline-in)
   (let ((cmdline (mapcan #'any->string-list cmdline-in)))
     (with-argv (arg0 argv cmdline)
-      (with-lfp-file-actions file-actions
+      (with-lfp-spawn-arguments (attributes file-actions)
+	(iolib.os::lfp-spawnattr-setcwd attributes (uiop:unix-namestring *current-directory*))
 	(with-all-redirections file-actions
 	  (cffi:with-foreign-object (pid 'isys:pid-t)
 	    (with-fd-lock-held
-	      (iolib.os::lfp-spawnp pid arg0 argv (get-cenv) file-actions (cffi:null-pointer)))
+	      (iolib.os::lfp-spawnp pid arg0 argv (get-cenv) file-actions attributes))
 	    (make-instance 'process :pid (cffi:mem-ref pid 'isys:pid-t))))))))
 
 (defun run* (cmdline)
@@ -357,7 +368,8 @@ value of a symbol, try something like (or symbol)."
 			     :key #'redirection-symbol
 			     :from-end t))
 	 (on-command-error *on-command-error*)
-	 (environment *environment*))
+	 (environment *environment*)
+	 (current-directory *current-directory*))
     (mapc (lambda (redir)
 	    (fd-stream-ref (redirection-stream redir)))
 	  redirections)
@@ -369,7 +381,8 @@ value of a symbol, try something like (or symbol)."
 		  (mapcar #'redirection-symbol symbol-redirections)
 		  (mapcar #'redirection-stream symbol-redirections)
 		(let ((*redirections* redirections)
-		      (*environment* environment))
+		      (*environment* environment)
+		      (*current-directory* current-directory))
 		  (unwind-protect
 		       (ecase on-command-error
 			 ((nil)   (funcall thunk))

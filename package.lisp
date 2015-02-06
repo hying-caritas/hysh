@@ -24,6 +24,8 @@
    #:pipe #:create-task #:with-task
    ;; environment
    #:with-change-environment #:environment-varaible #:mkunbound-environment-variable
+   ;; current directory
+   #:with-current-directory #:current-directory
    ;; pipeline filter helpers
    #:filter-char #:filter-line
    ;; glob

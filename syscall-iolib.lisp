@@ -10,7 +10,7 @@
 	  isys:o-rdonly isys:o-wronly isys:o-rdwr isys:o-excl isys:o-trunc
 	  isys:o-append isys:o-creat
 	  isys:dup isys:fd-cloexec-p isys:mkstemp isys:lseek
-	  isys:seek-set))
+	  isys:seek-set isys:getcwd isys:chdir))
 
 (setf (symbol-function 'sys-close) #'isys:close)
 
