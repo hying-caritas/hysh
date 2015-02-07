@@ -17,13 +17,17 @@ the last thunk.  Return NIL if thunks are NIL."
     (when last-thunk
       (funcall last-thunk))))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun convert-to-thunks (forms)
+    (mapcar (lambda (form) `(lambda () ,form))
+	    (convert-to-run-body forms))))
+
 (defmacro prog-or (&rest forms)
   "Evaluate the forms one by one, if the exit status of any form is
 success, return the values of the form immediately without evaluating
 the remaining forms.  Otherwise return the values of the last form.
 Return NIL if forms are NIL."
-  (let ((thunks (mapcar (lambda (form) `(lambda () ,form)) forms)))
-    `(prog-or* ,@thunks)))
+  `(prog-or* ,@(convert-to-thunks forms)))
 
 (defun prog-and* (&rest thunks)
   "Call the thunks one by one, if the exit status of any thunk is
@@ -46,8 +50,7 @@ thunk.  Return T if thunks are NIL."
 failure, return the values of the form immediately without evaluating
 the remaining forms.  Otherwise return the values of the last form.
 Return T if forms are NIL."
-  (let ((thunks (mapcar (lambda (form) `(lambda () ,form)) forms)))
-    `(prog-and* ,@thunks)))
+  `(prog-and* ,@(convert-to-thunks forms)))
 
 (defun background* (thunk-or-cmdline)
   "Call the thunk in a newly created task, return the task object."

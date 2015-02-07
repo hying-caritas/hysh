@@ -504,10 +504,12 @@ value of a symbol, try something like (or symbol)."
 	(run*      `(list ,@(cdr form)))
 	(run       `(list ,@(mapcar #'quote-non-list (cdr form))))
 	(otherwise `(lambda () ,form)))))
+  (defun convert-to-run-body (body)
+    (mapcar #'convert-to-run-form body))
   (defun process-task-body (body)
     (if (eql 1 (length body))
 	(process-task-form (car body))
-	`(lambda () ,@body))))
+	`(lambda () ,@(convert-to-run-body body)))))
 
 (defmacro create-task ((&rest keys &key stdin stdout stderr) &body body)
   "Create a task to evaluate the body in an implicit PROGN, return the
