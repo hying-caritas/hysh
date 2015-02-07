@@ -2,7 +2,7 @@
 
 ;;; Glue processes and common lisp functions
 
-(defun prog-or* (&rest thunks)
+(defun run-or* (&rest thunks)
   "Call the thunks one by one, if the exit status of any thunk is
 success, return the return values of the thunk immediately without
 calling the remaining thunks.  Otherwise return the return values of
@@ -12,7 +12,7 @@ the last thunk.  Return NIL if thunks are NIL."
 	(for remaining :on (cdr thunks))
 	(for ret-vals := (multiple-value-list (ignore-command-error (funcall thunk))))
 	(when (car (last ret-vals))
-	  (return-from prog-or* (values-list ret-vals))))
+	  (return-from run-or* (values-list ret-vals))))
   (let ((last-thunk (car (last thunks))))
     (when last-thunk
       (funcall last-thunk))))
@@ -22,14 +22,14 @@ the last thunk.  Return NIL if thunks are NIL."
     (mapcar (lambda (form) `(lambda () ,form))
 	    (convert-to-run-body forms))))
 
-(defmacro prog-or (&rest forms)
+(defmacro run-or (&rest forms)
   "Evaluate the forms one by one, if the exit status of any form is
 success, return the values of the form immediately without evaluating
 the remaining forms.  Otherwise return the values of the last form.
 Return NIL if forms are NIL."
-  `(prog-or* ,@(convert-to-thunks forms)))
+  `(run-or* ,@(convert-to-thunks forms)))
 
-(defun prog-and* (&rest thunks)
+(defun run-and* (&rest thunks)
   "Call the thunks one by one, if the exit status of any thunk is
 failure, return the return values of the thunk immediately without
 calling the remaining thunks.  Otherwise return the values of the last
@@ -39,18 +39,18 @@ thunk.  Return T if thunks are NIL."
 	(for remaining :on (cdr thunks))
 	(for ret-vals := (multiple-value-list (ignore-command-error (funcall thunk))))
 	(unless (car (last ret-vals))
-	  (return-from prog-and* (values-list ret-vals))))
+	  (return-from run-and* (values-list ret-vals))))
   (let ((last-thunk (car (last thunks))))
     (if last-thunk
 	(funcall last-thunk)
 	t)))
 
-(defmacro prog-and (&rest forms)
+(defmacro run-and (&rest forms)
   "Evaluate the forms one by one, if the exit status of any form is
 failure, return the values of the form immediately without evaluating
 the remaining forms.  Otherwise return the values of the last form.
 Return T if forms are NIL."
-  `(prog-and* ,@(convert-to-thunks forms)))
+  `(run-and* ,@(convert-to-thunks forms)))
 
 (defun background* (thunk-or-cmdline)
   "Call the thunk in a newly created task, return the task object."
