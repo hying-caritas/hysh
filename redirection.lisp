@@ -44,7 +44,7 @@ pipeline."
 	    stream)
     (funcall func)))
 
-(defmacro with-redirect-to-fd-stream (stream-var fd stream &body body)
+(defmacro with-redirect-to-fd-stream ((stream-var fd) stream &body body)
   "Redirect the stream-var (for a lisp stream variable, such as
 *standard-input*) and fd (for a UNIX file descriptor, such as
 0 (stdin)) to the stream, then evalute the body in an implicit PROGN,
@@ -72,13 +72,13 @@ redirection."
      (call-with-redirect-to-fd-stream stream-sym fd
 				      stream func))))
 
-(defmacro with-redirect-to-file (stream-var fd pathname flags &body body)
+(defmacro with-redirect-to-file ((stream-var fd) (pathname &rest flags) &body body)
   "Open the pathname with the flags and redirect the stream-var (for a
 lisp stream variable, such as *standard-input*) and the fd (for a UNIX
 file descriptor, such as 0 (stdin)) to the opened file, then evaluate
 the body in an implicit PROGN, return the values of the last form of
 the body.  Finally canceled the redirection and close the file."
-  `(call-with-redirect-to-file ',stream-var ,fd ,pathname ,flags
+  `(call-with-redirect-to-file ',stream-var ,fd ,pathname (list ,@flags)
 			       (lambda () ,@body)))
 
 (defun call-with-redirect-to-fd (stream-sym fd to-fd func)
@@ -88,7 +88,7 @@ the body.  Finally canceled the redirection and close the file."
      (call-with-redirect-to-fd-stream stream-sym fd
 				      stream func))))
 
-(defmacro with-redirect-to-fd (stream-var fd to-fd &body body)
+(defmacro with-redirect-to-fd ((stream-var fd) to-fd &body body)
   "Redirect the stream-var (for a lisp stream variable, such as
 *standard-input*) and the fd (for a UNIX file descriptor, such as
 0 (stdin)) to the to-fd, then evaluate the body in an implicit PROGN,
@@ -108,11 +108,11 @@ redirection and close the to-fd."
   "Redirect a list of stream-vars (for a lisp stream variable,
 such as *standard-input*) and fds (for a UNIX file descriptor, such as
 0 (stdin)) to a list of to-fds, they are spcified via the list
-of (stream-var fd to-fd), then evaluate the body in an implicit PROGN,
+of ((stream-var fd) to-fd), then evaluate the body in an implicit PROGN,
 return the values of the last form of the body.  Finally canceled the
 redirections and close the to-fds."
   (let (stream-syms fds to-fds)
-    (iter (for (stream-sym fd to-fd)
+    (iter (for ((stream-sym fd) to-fd)
 	       :in stream-var-fd-to-fd-list)
 	  (push stream-sym stream-syms)
 	  (push fd fds)
@@ -155,8 +155,8 @@ body, finally cancel the redirections and close the fds."
 implicit PROGN, finally restore the original stdin.  Return the values
 of the last form of the body."
   `(with-redirect-to-file
-       *stanard-input* +STDIN-FD+ ,pathname
-       '(:direction :input :if-does-not-exist :error)
+       (*stanard-input* +STDIN-FD+)
+       (,pathname :direction :input :if-does-not-exist :error)
      ,@body))
 
 (defmacro with-redirect-stdout-to-file (pathname &body body)
@@ -164,8 +164,8 @@ of the last form of the body."
 implicit PROGN, finally restore the original stdout.  Return the
 values of the last form of the body."
   `(with-redirect-to-file
-       *standard-output* +STDOUT-FD+ ,pathname
-       '(:direction :output :if-exists :supersede :if-does-not-exist :create)
+       (*standard-output* +STDOUT-FD+)
+       (,pathname :direction :output :if-exists :supersede :if-does-not-exist :create)
      ,@body))
 
 (defmacro with-redirect-stderr-to-file (pathname &body body)
@@ -173,8 +173,8 @@ values of the last form of the body."
 implicit PROGN, finally restore the original stderr.  Return the
 values of the last form of the body."
   `(with-redirect-to-file
-       *error-output* +STDERR-FD+ ,pathname
-       '(:direction :output :if-exists :supersede :if-does-not-exist :create)
+       (*error-output* +STDERR-FD+)
+       (,pathname :direction :output :if-exists :supersede :if-does-not-exist :create)
        ,@body))
 
 (defun call-with-redirect-stderr-to-stdout (thunk)
@@ -199,7 +199,7 @@ values of the last form of the body."
 	   (type (function (stream)) reader))
   (let ((tmp-fd (tmpfd)))
     (with-redirect-to-fd
-	*standard-output* +STDOUT-FD+ tmp-fd
+	(*standard-output* +STDOUT-FD+) tmp-fd
       (let ((ret-vals (multiple-value-list (funcall thunk))))
 	(finish-output)
 	;; FIXME: interaction between seek and stream
@@ -263,8 +263,8 @@ the body."
   (let ((out-fd (tmpfd))
 	(err-fd (tmpfd)))
     (with-redirect-to-fds
-	((*standard-output* +STDOUT-FD+ out-fd)
-	 (*error-output* +STDERR-FD+ err-fd))
+	(((*standard-output* +STDOUT-FD+) out-fd)
+	 ((*error-output* +STDERR-FD+) err-fd))
       (let ((ret-vals (multiple-value-list (funcall thunk))))
 	(lseek out-fd 0 seek-set)
 	(lseek err-fd 0 seek-set)
@@ -323,7 +323,7 @@ the return values of the thunk."
 	   (type thunk thunk))
   (let ((tmp-fd (tmpfd)))
     (with-redirect-to-fd
-	*standard-input* +STDIN-FD+ tmp-fd
+	(*standard-input* +STDIN-FD+) tmp-fd
       (funcall writer *standard-input*)
       (finish-output *standard-input*)
       (lseek tmp-fd 0 seek-set)
