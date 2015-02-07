@@ -2,6 +2,11 @@
 
 ;;; Glue processes and common lisp functions
 
+(defmacro run-progn (&rest forms)
+  "Evaluate the forms in a implicit PROGN, return the values of the
+last form."
+  `(progn ,@(convert-to-run-body forms)))
+
 (defun run-or* (&rest thunks)
   "Call the thunks one by one, if the exit status of any thunk is
 success, return the return values of the thunk immediately without

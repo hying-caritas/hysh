@@ -20,7 +20,7 @@
    #:out/s #:out/ss #:out/lines #:out/err/s #:out/err/ss #:in/s
    #:in/lines #:io/s #:io/ss #:io/ss/run
    ;; glue processes and common lisp functions
-   #:run-or #:run-and #:background
+   #:run-progn #:run-or #:run-and #:background
    #:pipe #:create-task #:with-task
    ;; environment
    #:with-change-environment #:environment-varaible #:mkunbound-environment-variable
