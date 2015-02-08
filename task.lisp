@@ -134,14 +134,12 @@ Return the process object."
 
 (defun add-active-task (task)
   (with-lock-held (*active-tasks-lock*)
-    (setf *active-tasks*
-	  (cons task *active-tasks*)))
+    (push task *active-tasks*))
   task)
 
 (defun delete-active-task (task)
   (with-lock-held (*active-tasks-lock*)
-    (setf *active-tasks*
-	  (delete task *active-tasks*))))
+    (deletef *active-tasks* task)))
 
 (defun reap-active-tasks ()
   (with-lock-held (*active-tasks-lock*)
