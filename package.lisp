@@ -1,9 +1,11 @@
 (in-package #:cl-user)
 
 (defpackage #:hysh
-  (:use #:cl #:iterate #:alexandria #:split-sequence
+  (:use #:cl #:iterate #:alexandria #:split-sequence #:hy-utils
 	#:bordeaux-threads #:hy-stream)
   (:export
+   ;; common
+   #:values-reverse
    ;; task
    #:task-alive-p #:wait-task #:task-return-success-p #:close-task
    #:task-return-value #:task-stdin #:task-stdout #:task-stderr

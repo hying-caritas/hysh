@@ -27,7 +27,7 @@ it is not NIL."
 ;; glob
 
 (defun zglobcmd (&rest patterns)
-  `(zsh --nullglob -fc ,(string-join " " (cons "print -l" patterns))))
+  `(zsh --nullglob -fc ,(join-strings " " (cons "print -l" patterns))))
 
 (defun zglob (patterns)
   "Return a list of string matches patterns in shell pattern syntax

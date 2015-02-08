@@ -3,7 +3,7 @@
 (defsystem #:hysh
   :description "Huang Ying's shell in common lisp"
   :version "0.1"
-  :depends-on (:asdf :uiop :alexandria :iterate
+  :depends-on (:asdf :uiop :alexandria :iterate :hy-utils
 	       :iolib.syscalls :iolib.streams :iolib.os
 	       :bordeaux-threads :hy-stream)
   :components ((:file "package")
