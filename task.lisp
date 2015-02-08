@@ -50,14 +50,20 @@
   (wait-task task)
   (values))
 
+(defun %join-thread (thread)
+  (handler-case
+      (join-thread thread)
+    #+sbcl
+    (sb-thread:join-thread-error () nil)))
+
 (defmethod task-return-value ((thread thread-task))
-  (join-thread (slot-value thread 'thread)))
+  (%join-thread (slot-value thread 'thread)))
 
 (defmethod task-alive-p ((thread thread-task))
   (thread-alive-p (slot-value thread 'thread)))
 
 (defmethod wait-task ((thread thread-task))
-  (join-thread (slot-value thread 'thread))
+  (%join-thread (slot-value thread 'thread))
   thread)
 
 (defmethod task-return-success-p ((thread thread-task))
