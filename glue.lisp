@@ -16,9 +16,9 @@ the last thunk.  Return NIL if thunks are NIL."
   (iter (for thunk :in thunks)
 	(for remaining :on (cdr thunks))
 	(for ret-vals := (multiple-value-list (ignore-command-error (funcall thunk))))
-	(when (car (last ret-vals))
+	(when (lastcar ret-vals)
 	  (return-from run-or* (values-list ret-vals))))
-  (let ((last-thunk (car (last thunks))))
+  (let ((last-thunk (lastcar thunks)))
     (when last-thunk
       (funcall last-thunk))))
 
@@ -43,9 +43,9 @@ thunk.  Return T if thunks are NIL."
   (iter (for thunk :in thunks)
 	(for remaining :on (cdr thunks))
 	(for ret-vals := (multiple-value-list (ignore-command-error (funcall thunk))))
-	(unless (car (last ret-vals))
+	(unless (lastcar ret-vals)
 	  (return-from run-and* (values-list ret-vals))))
-  (let ((last-thunk (car (last thunks))))
+  (let ((last-thunk (lastcar thunks)))
     (if last-thunk
 	(funcall last-thunk)
 	t)))
@@ -98,7 +98,7 @@ return the task object."
 		       (create-pipe-thread in-fd out-fd thunk-or-cmdline))))))
     (iter (for task :in tasks)
 	  (wait-task task))
-    (task-return-success-p (car (last tasks)))))
+    (task-return-success-p (lastcar tasks))))
 
 (defmacro pipe (&rest forms)
   "Create one task for each form in the forms, connect the stdout of
