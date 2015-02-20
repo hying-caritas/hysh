@@ -315,7 +315,7 @@ last form of the body."
 (defun any->string-list (x)
   (typecase x
     (string (list x))
-    (sequence (map 'list #'any->string x))
+    (sequence (apply #'nconc (map 'list #'any->string-list x)))
     (t (list (any->string x)))))
 
 (defun create-simple-process* (cmdline-in)
