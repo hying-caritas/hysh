@@ -214,9 +214,7 @@ return values of the thunk."
   (declare (type thunk thunk))
   (%out/stream thunk
 	       (lambda (stream)
-		 (fd-stream-ref stream)
-		 (fd-stream-ref stream)
-		 (uiop:slurp-stream-string stream))))
+		 (read-stream-into-string stream))))
 
 (defmacro out/s (&body body)
   "Collect the output of evaluating the body in an implicit PROGN via
@@ -230,9 +228,7 @@ stripped."
   (declare (type thunk thunk))
   (%out/stream thunk
 	       (lambda (stream)
-		 (fd-stream-ref stream)
-		 (fd-stream-ref stream)
-		 (values (uiop:stripln (uiop:slurp-stream-string stream))))))
+		 (values (uiop:stripln (read-stream-into-string stream))))))
 
 (defmacro out/ss (&body body)
   "Almost same as out/s except the newline at end of output string is
@@ -246,8 +242,7 @@ lines as list and the return values of the thunk."
   (declare (type thunk thunk))
   (%out/stream thunk
 	       (lambda (stream)
-		 (fd-stream-ref stream)
-		 (uiop:slurp-stream-lines stream))))
+		 (read-stream-into-lines stream))))
 
 (defmacro out/lines (&body body)
   "Collect the output of evaluating the body in an implicit PROGN into
@@ -278,13 +273,9 @@ via redirecting its stdout and stderr.  Finally restore the original
 stdout/stderr.  Return the collected strings and the values of the
 last form of the body."
   (declare (type thunk thunk))
-  (flet ((ref-slurp-stream-string (stream)
-	   (fd-stream-ref stream)
-	   (fd-stream-ref stream)
-	   (uiop:slurp-stream-string stream)))
-    (%out/err/stream thunk
-		     #'ref-slurp-stream-string
-		     #'ref-slurp-stream-string)))
+  (%out/err/stream thunk
+		   #'read-stream-into-string
+		   #'read-stream-into-string))
 
 (defmacro out/err/s (&body body)
   "Collect the normal and error output as strings of evaluating the
@@ -299,13 +290,11 @@ via redirecting its stdout and stderr.  Finally restore the original
 stdout/stderr.  Return the collected strings and the values of the
 last form of the body."
   (declare (type thunk thunk))
-  (flet ((ref-strip-slurp-stream-string (stream)
-	   (fd-stream-ref stream)
-	   (fd-stream-ref stream)
-	   (values (uiop:stripln (uiop:slurp-stream-string stream)))))
+  (flet ((ref-strip-read-stream-into-string (stream)
+	   (values (uiop:stripln (read-stream-into-string stream)))))
     (%out/err/stream thunk
-		     #'ref-strip-slurp-stream-string
-		     #'ref-strip-slurp-stream-string)))
+		     #'ref-strip-read-stream-into-string
+		     #'ref-strip-read-stream-into-string)))
 
 (defmacro out/err/ss (&body body)
   "Collect the normal and error output as strings of evaluating the
