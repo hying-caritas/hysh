@@ -13,3 +13,6 @@
   `(let ((*current-directory* (uiop:parse-unix-namestring ,pathname
 							 :ensure-directory t)))
      (progn ,@body)))
+
+(defun sync-current-directory ()
+  (setf *current-directory* (getcwd)))

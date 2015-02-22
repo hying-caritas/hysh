@@ -27,7 +27,7 @@
    ;; environment
    #:with-change-environment #:environment-varaible #:mkunbound-environment-variable
    ;; current directory
-   #:with-current-directory #:current-directory
+   #:with-current-directory #:current-directory #:sync-current-directory
    ;; pipeline filter helpers
    #:filter-char #:filter-line
    ;; glob
