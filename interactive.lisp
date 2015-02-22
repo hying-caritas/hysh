@@ -1,0 +1,43 @@
+(in-package :hysh)
+
+(defvar *monitor-input-threads* nil)
+(defvar *monitor-input-outputs* nil)
+
+(defun copy-stream-in-line (in-stream out-stream)
+  (iter (for line := (read-line in-stream nil nil nil))
+	(while line)
+	(write-line line out-stream)))
+
+(defun start-monitor-input (in-stream out-stream)
+  (let ((thread (make-thread (lambda ()
+			       (copy-stream-in-line in-stream out-stream)))))
+    (push thread *monitor-input-threads*)
+    (push out-stream *monitor-input-outputs*)))
+
+(defun stop-monitor-input ()
+  (iter (for thread :in *monitor-input-threads*)
+	(destroy-thread thread))
+  (iter (for stream :in *monitor-input-outputs*)
+	(close stream))
+  (setf *monitor-input-threads* nil)
+  (setf *monitor-input-outputs* nil))
+
+(defun interactive* (thunk)
+  (with-task
+      (task  (:stdin :pipe :stdout :pipe :stderr :pipe) (funcall thunk))
+    (let* ((standard-output *standard-output*)
+	   (error-output *error-output*)
+	   (thread-stdout (make-thread (lambda ()
+					 (copy-stream-in-line (task-stdout task) standard-output))))
+	   (thread-stderr (make-thread (lambda ()
+					 (copy-stream-in-line (task-stderr task) error-output)))))
+      (start-monitor-input *standard-input* (task-stdin task))
+      (wait-task task)
+      (join-thread thread-stdout)
+      (join-thread thread-stderr)
+      (stop-monitor-input)
+      (setf (slot-value task 'stdin) nil)
+      (task-return-value task))))
+
+(defmacro interactive (&body body)
+  `(interactive* (lambda () ,@body)))

@@ -31,4 +31,6 @@
    ;; pipeline filter helpers
    #:filter-char #:filter-line
    ;; glob
-   #:zglob))
+   #:zglob
+   ;; interactive
+   #:interactive #:stop-monitor-input))

@@ -15,6 +15,7 @@
 	       (:file "redirection" :depends-on ("stream"))
 	       (:file "task" :depends-on ("redirection" "environment" "pathname"))
 	       (:file "glue" :depends-on ("task"))
-	       (:file "misc" :depends-on ("task")))
+	       (:file "misc" :depends-on ("task"))
+	       (:file "interactive" :depends-on ("task")))
   :in-order-to ((test-op (load-op "hysh-test")))
   :perform (test-op :after (o c) (symbol-call :hysh-test :main)))
