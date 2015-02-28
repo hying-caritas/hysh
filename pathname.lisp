@@ -10,8 +10,9 @@
 	(uiop:parse-unix-namestring pathname :ensure-directory t)))
 
 (defmacro with-current-directory (pathname &body body)
-  `(let ((*current-directory* (uiop:parse-unix-namestring ,pathname
-							 :ensure-directory t)))
+  `(let* ((*current-directory* (uiop:parse-unix-namestring ,pathname
+							   :ensure-directory t))
+	  (*default-pathname-defaults* *current-directory*))
      (progn ,@body)))
 
 (defun sync-current-directory ()
