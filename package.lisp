@@ -30,7 +30,5 @@
    #:with-current-directory #:current-directory #:sync-current-directory
    ;; pipeline filter helpers
    #:filter-char #:filter-line
-   ;; glob
-   #:zglob
    ;; interactive
    #:interactive #:stop-monitor-input))

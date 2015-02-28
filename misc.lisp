@@ -23,15 +23,3 @@ it is not NIL."
 	(let ((out-line (funcall line-func line)))
 	  (if out-line
 	      (write-line out-line)))))
-
-;; glob
-
-(defun zglobcmd (&rest patterns)
-  `(zsh --nullglob -fc ,(join-strings " " (cons "print -l" patterns))))
-
-(defun zglob (patterns)
-  "Return a list of string matches patterns in shell pattern syntax
-and semantics."
-  (out/lines
-    (with-redirect-stderr-to-file "/dev/null"
-      (run* (apply #'zglobcmd (ensure-list patterns))))))
