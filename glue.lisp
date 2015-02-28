@@ -98,12 +98,12 @@ return the task object."
 		       (create-pipe-thread in-fd out-fd thunk-or-cmdline))))))
     (iter (for task :in tasks)
 	  (wait-task task))
-    (task-return-success-p (lastcar tasks))))
+    (task-return-value (lastcar tasks))))
 
 (defmacro pipe (&rest forms)
   "Create one task for each form in the forms, connect the stdout of
 the previous task with the stdin of the following task, evaluate the
 form in each task, finally wait for all tasks to exit.  Return the
-exit success status of the last task."
+return values of the last task."
   (let ((thunks (mapcar #'process-task-form forms)))
     `(pipe* ,@thunks)))

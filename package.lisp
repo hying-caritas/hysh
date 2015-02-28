@@ -7,7 +7,7 @@
    ;; common
    #:values-reverse
    ;; task
-   #:task-alive-p #:wait-task #:task-return-success-p #:close-task
+   #:task-alive-p #:wait-task #:close-task
    #:task-return-value #:task-stdin #:task-stdout #:task-stderr
    ;; command
    #:command-error #:command-error-command #:command-error-process

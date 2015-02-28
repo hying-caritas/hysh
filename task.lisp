@@ -8,12 +8,9 @@
 (defgeneric wait-task (task)
   (:documentation "Wait for task to exit, return the task."))
 (defgeneric task-return-value (task)
-  (:documentation "Get the return value of the task, if the the task
-  has not exited, wait for it.  Return the return value (thread) or
-  the exit status and state (process)."))
-(defgeneric task-return-success-p (task)
-  (:documentation "Return whether the task exited with success status,
-  may wait for task to exit."))
+  (:documentation "Get the return values of the task, if the the task
+  has not exited, wait for it.  Multiple values may be returned, the
+  last value indicate whether the the task run successfully."))
 
 (defclass task ()
   ((stdin :initform nil :type stream :reader task-stdin)
@@ -41,14 +38,14 @@
 (defvar *in-reap-active-tasks* nil)
 
 (defun close-task (task)
-  "Release the resources for the task."
-  (with-slots ((stdin stdin) (stdout stdout) (stderr stderr))
+  "Release the resources for the task and return the return values of
+the task"
+  (with-slots (stdin stdout stderr)
       task
     (when stdin (close stdin))
     (when stdout (close stdout))
     (when stderr (close stderr)))
-  (wait-task task)
-  (values))
+  (task-return-value task))
 
 (defun %join-thread (thread)
   (handler-case
@@ -65,9 +62,6 @@
 (defmethod wait-task ((thread thread-task))
   (%join-thread (slot-value thread 'thread))
   thread)
-
-(defmethod task-return-success-p ((thread thread-task))
-  (task-return-value thread))
 
 (defmacro with-process-locked (process &body body)
   `(with-lock-held ((slot-value ,process 'lock))
@@ -123,14 +117,7 @@ Return the process object."
   (with-slots ((state state) (status status))
       process
     (with-process-locked process
-      (values status state))))
-
-(defmethod task-return-success-p ((process process))
-  (wait-process process)
-  (with-slots ((state state) (status status))
-      process
-    (with-process-locked process
-      (and (eq state :exited) (eql status 0)))))
+      (values status state (and (eq state :exited) (zerop status))))))
 
 (defun add-active-task (task)
   (with-lock-held (*active-tasks-lock*)
@@ -334,13 +321,13 @@ last form of the body."
 exit, if exit status is failure, will signal command-error.  Return
 the exit success status of the process."
   (let* ((process (create-simple-process* cmdline))
-	 (ret (task-return-success-p (wait-task process))))
-    (if (not ret)
-	(restart-case
-	    (signal (make-condition 'command-error :command cmdline
-				    :process process))
-	  (continue ())))
-    ret))
+	 (ret-values (multiple-value-list (task-return-value process))))
+    (unless (lastcar ret-values)
+      (restart-case
+	  (signal (make-condition 'command-error :command cmdline
+				  :process process))
+	(continue ())))
+    (values-list ret-values)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun quote-non-list (form)
