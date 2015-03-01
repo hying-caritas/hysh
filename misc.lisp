@@ -11,7 +11,8 @@
 	(while c)
 	(let ((out-char (funcall char-func c)))
 	  (if out-char
-	      (write-char out-char)))))
+	      (write-char out-char))))
+  t)
 
 ;; line-func should be string -> string (line -> line) function
 (defun filter-line (line-func)
@@ -22,4 +23,5 @@ it is not NIL."
 	(while line)
 	(let ((out-line (funcall line-func line)))
 	  (if out-line
-	      (write-line out-line)))))
+	      (write-line out-line))))
+  t)
