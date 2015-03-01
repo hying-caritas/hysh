@@ -23,7 +23,7 @@
    #:in/lines #:io/s #:io/ss #:io/ss/run
    ;; glue processes and common lisp functions
    #:run-progn #:run-or #:run-and #:background
-   #:pipe #:create-task #:with-task
+   #:pipe #:*pipe-return-all* #:create-task #:with-task
    ;; environment
    #:with-change-environment #:environment-varaible #:mkunbound-environment-variable
    ;; current directory

@@ -81,6 +81,8 @@ return the task object."
       (in-fd out-fd)
     (create-simple-process* cmdline)))
 
+(defvar *pipe-return-all* nil)
+
 ;;; FIXME call thunk from end to begin ???
 (defun pipe* (&rest thunk-or-cmdline-list)
   (declare (type list thunk-or-cmdline-list))
@@ -96,9 +98,15 @@ return the task object."
 		   (if (consp thunk-or-cmdline)
 		       (create-pipe-process in-fd out-fd thunk-or-cmdline)
 		       (create-pipe-thread in-fd out-fd thunk-or-cmdline))))))
-    (iter (for task :in tasks)
-	  (wait-task task))
-    (task-return-value (lastcar tasks))))
+    (if *pipe-return-all*
+	(let ((all-return-values (iter (for task :in tasks)
+				       (collect (multiple-value-list
+						 (task-return-value task))))))
+	  (values-list (cons all-return-values (lastcar all-return-values))))
+	(progn
+	  (iter (for task :in tasks)
+		(wait-task task))
+	  (task-return-value (lastcar tasks))))))
 
 (defmacro pipe (&rest forms)
   "Create one task for each form in the forms, connect the stdout of
