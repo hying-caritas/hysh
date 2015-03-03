@@ -186,7 +186,7 @@ values of the last form of the body."
 implicit PROGN, finally restore the original stderr.  Return the
 values of the last form of the body."
   `(with-redirect-to-fd-stream
-       *error-output* +STDERR-FD+ *standard-output*
+       (*error-output* +STDERR-FD+) *standard-output*
      ,@body))
 
 (defun tmpfd (&optional (template "/tmp/hysh-"))
