@@ -2,15 +2,13 @@
 
 (defvar *fd-lock* (make-lock))
 
-(cffi:defcvar "environ" :pointer)
-
 (import '(isys:syscall-error isys::syscall-of isys:code-of isys:strerror
 	  isys:waitpid isys:wnohang isys:wifexited isys:wexitstatus
 	  isys:wifsignaled isys:wtermsig
 	  isys:o-rdonly isys:o-wronly isys:o-rdwr isys:o-excl isys:o-trunc
 	  isys:o-append isys:o-creat
 	  isys:dup isys:fd-cloexec-p isys:mkstemp isys:lseek
-	  isys:seek-set isys:getcwd isys:chdir))
+	  isys:seek-set isys:getcwd isys:chdir isys:os-environ))
 
 (setf (symbol-function 'sys-close) #'isys:close)
 

@@ -1,15 +1,18 @@
 (in-package :hysh)
 
+;;; variables = null, cenv = null: system default environment, cenv is in effect (os-environ)
+;;; variables = empty hash: null environment, cenv must be null or consistent with variables
+;;; variables = hash: cenv must be null or consistent with variables
+;;; variables = null, cenv = not null: invalid
+;;;
+;;; cenv is just a converted cache of variables for using same environment for different command
 (defclass environment ()
   ((lock :initform (make-lock))
    (refcount :initform 1 :type integer)
    (variables :initform nil :initarg :variables :type (or null hash-table))
-   (cenv :initarg :cenv :type cffi:foreign-pointer)))
+   (cenv :initform (cffi:null-pointer) :initarg :cenv :type cffi:foreign-pointer)))
 
-(defun make-default-environment ()
-  (make-instance 'environment :cenv *environ*))
-
-(defvar *environment* (make-default-environment))
+(defvar *environment* (make-instance 'environment))
 
 (defmacro with-environment-locked (environment &body body)
   `(with-lock-held ((slot-value ,environment 'lock)) ,@body))
@@ -33,10 +36,10 @@
   (with-environment-locked environment
     (with-slots (variables cenv)
 	environment
-      (make-instance 'environment :cenv (cffi:null-pointer)
-		     :variables (if variables
-				    (copy-hash-table variables)
-				    (cenv->hash cenv))))))
+      (make-instance 'environment
+		     :cenv (cffi:null-pointer)
+		     :variables (when variables
+				  (copy-hash-table variables))))))
 
 (defun %split-var=val (str)
   (multiple-value-bind (var pos)
@@ -67,7 +70,7 @@
       cenv)))
 
 (defun %free-cenv (cenv)
-  (unless (cffi:pointer-eq cenv *environ*)
+  (unless (cffi:null-pointer-p cenv)
     (free-cstr-vec cenv)))
 
 (defun close-environment (environment)
@@ -84,9 +87,11 @@
   (with-environment-locked environment
     (with-slots (variables cenv)
 	environment
-      (when (cffi:null-pointer-p cenv)
-	(setf cenv (hash->cenv variables)))
-      cenv)))
+      (if (cffi:null-pointer-p cenv)
+	  (if (null variables)
+	      (os-environ)
+	      (setf cenv (hash->cenv variables)))
+	  cenv))))
 
 (defun environment-variable (var &optional (environment *environment*))
   "Get the value of the var in the environment (default to current
@@ -96,8 +101,8 @@ environment)"
   (with-environment-locked environment
     (with-slots (variables cenv)
 	environment
-      (unless  variables
-	(setf variables (cenv->hash cenv)))
+      (unless variables
+	(setf variables (cenv->hash (os-environ))))
       (gethash var variables))))
 
 (defun %prepare-change-env (environment)
@@ -105,7 +110,7 @@ environment)"
   (with-slots (variables cenv)
       environment
     (unless variables
-      (setf variables (cenv->hash cenv)))
+      (setf variables (cenv->hash (os-environ))))
     (unless (cffi:null-pointer-p cenv)
       (%free-cenv cenv)
       (setf cenv (cffi:null-pointer)))))
