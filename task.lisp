@@ -330,7 +330,7 @@ the exit success status of the process."
     (values-list ret-values)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun quote-non-list (form)
+  (defun quote-symbol (form)
     (if (symbolp form)
 	`(quote ,form)
 	form)))
@@ -341,7 +341,7 @@ status is failure, will signal command-error.  Return whether the
 process sucess exit status.  Symbol arguments in command line will be
 quoted automatically, other arguments keep as it is.  If you want the
 value of a symbol, try something like (or symbol)."
-  (let ((cmdline (mapcar #'quote-non-list (cons cmd args))))
+  (let ((cmdline (mapcar #'quote-symbol (cons cmd args))))
     `(run* `(,,@cmdline))))
 
 ;;; Run in thread
@@ -493,7 +493,7 @@ value of a symbol, try something like (or symbol)."
     (let ((form (convert-to-run-form form-in)))
       (case (car form)
 	(run*      `(list ,@(cdr form)))
-	(run       `(list ,@(mapcar #'quote-non-list (cdr form))))
+	(run       `(list ,@(mapcar #'quote-symbol (cdr form))))
 	(otherwise `(lambda () ,form)))))
   (defun convert-to-run-body (body)
     (mapcar #'convert-to-run-form body))
