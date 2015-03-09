@@ -151,7 +151,5 @@ then evaluate the body in an implicit PROGN, return the values of the
 last form of the body.  Finally restore the original environment.  The
 format to specify set operations is ((var val) ...), the format to
 specify unset operations is (var ...)"
-  `(call-with-change-environment ,(cons 'list
-					(mapcar (lambda (var-val) (cons 'list var-val))
-						sets))
-				 ,unsets (lambda () ,@body)))
+  `(call-with-change-environment (list ,@(mapcar (lambda (var-val) `(list ,@var-val)) sets))
+				 (list ,@unsets) (lambda () ,@body)))
