@@ -77,8 +77,8 @@ between programs are done in Common Lisp functions/macros.
 IO redirection in Unix process world means replace the original
 standard input, output, etc. file descriptors with file, pipe, etc.
 In HYSH, we defined IO redirection for Common Lisp.  That means
-replace the original \*standard-input\*, \*standard-output\*,
-\*error-output\*, etc. streams with other streams of file, pipe, etc.
+replace the original *standard-input*, *standard-output*,
+*error-output*, etc. streams with other streams of file, pipe, etc.
 So for an IO redirection, a Common Lisp stream special variable and a
 file descriptor number can be specified.  After that is done, all
 Common Lisp function will reference the replaced streams for the
