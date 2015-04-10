@@ -123,3 +123,21 @@ Lisp with string as input and output.  It can be accomplished with:
 
 For given input-string and arguments, the form will return the result
 string and exit status of filter.
+
+** Comparison with INFERIOR-SHELL
+
+For me, scripts in INFERIOR-SHELL are more like bash script in SEXP
+syntax, while scripts in HYSH are more like normal lisp program.  For
+example, a script in INFERIOR-SHELL:
+
+#+BEGIN_EXAMPLE
+(run '(progn ls / (> output) (echo "abc" (>> output))))
+#+END_EXAMPLE
+
+vs. the script with similar functionality in HYSH:
+
+#+BEGIN_EXAMPLE
+(with-redirect-stdout-to-file "output"
+  (run ls /)
+  (format t "abc~%"))
+#+END_EXAMPLE
