@@ -141,3 +141,20 @@ vs. the script with similar functionality in HYSH:
   (run ls /)
   (format t "abc~%"))
 #+END_EXAMPLE
+
+** Install
+
+HYSH depends on the following ASDF systems, they can be installed via
+[[http://www.quicklisp.org/beta/][quicklisp]].
+
+- alexandria
+- iterate
+- split-sequence
+- iolib
+- bordeaux-threads
+
+Download the following systems and put them into a directory which can
+be found by ASDF ([[https://common-lisp.net/project/asdf/asdf.html#Configuring-ASDF-to-find-your-systems][howto]]).
+
+- [[https://github.com/hying-caritas/hy-utils][hy-utils]]
+- [[https://github.com/hying-caritas/hy-stream][hy-stream]]
