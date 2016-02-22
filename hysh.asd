@@ -4,7 +4,7 @@
   :description "Huang Ying's shell in common lisp"
   :version "0.1"
   :depends-on (#:asdf #:uiop #:alexandria #:iterate #:split-sequence #:hy-utils
-	       #:iolib.syscalls #:iolib.streams #:iolib.os #:bordeaux-threads
+	       #:iolib/syscalls #:iolib/streams #:iolib/os #:bordeaux-threads
 	       #:hy-stream)
   :components ((:file "package")
 	       (:file "common" :depends-on ("package"))
